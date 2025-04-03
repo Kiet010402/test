@@ -97,8 +97,7 @@ local CONFIG = {
     SHOW_UI = savedConfig and savedConfig.SHOW_UI ~= nil and savedConfig.SHOW_UI or true,
     UI_POSITION = UDim2.new(0.7, 0, 0.05, 0),
     ACCOUNT_NAME = playerName, -- Lưu tên tài khoản vào cấu hình
-    AUTO_TELEPORT = savedConfig and savedConfig.AUTO_TELEPORT ~= nil and savedConfig.AUTO_TELEPORT or false, -- Sử dụng giá trị đã lưu
-    SELECTED_MAP = savedConfig and savedConfig.SELECTED_MAP or "Map Leveling City" -- Thêm cấu hình cho map đã chọn
+    AUTO_TELEPORT = savedConfig and savedConfig.AUTO_TELEPORT ~= nil and savedConfig.AUTO_TELEPORT or false -- Sử dụng giá trị đã lưu
 }
 
 -- Lưu cấu hình hiện tại
@@ -136,7 +135,7 @@ local sendTestWebhook
 local Window = Rayfield:CreateWindow({
     Name = "Arise Webhook - " .. playerName,
     LoadingTitle = "Arise Crossover",
-    LoadingSubtitle = "by DuongTuan",
+    LoadingSubtitle = "by Kiz",
     ConfigurationSaving = {
         Enabled = true,
         FolderName = "AriseWebhook",
@@ -335,15 +334,6 @@ local ShutdownButton = SettingsTab:CreateButton({
 -- Tạo Tab Teleport
 local TeleportTab = Window:CreateTab("Teleport", "map-pin") -- Sử dụng icon Lucide
 
--- Debug: Thông báo đã tạo tab
-print("Đã tạo tab Teleport")
-
--- Thêm section để tổ chức UI
-local TeleportSection = TeleportTab:CreateSection("Teleport Options")
-
--- Debug: Thông báo đã tạo section
-print("Đã tạo section trong tab Teleport")
-
 -- Tạo Toggle cho Auto Teleport
 local AutoTeleportToggle = TeleportTab:CreateToggle({
     Name = "Auto TP to AFK",
@@ -352,209 +342,106 @@ local AutoTeleportToggle = TeleportTab:CreateToggle({
     Callback = function(Value)
         CONFIG.AUTO_TELEPORT = Value
         saveConfig(CONFIG)
-        print("Auto TP to AFK: " .. tostring(Value))
     end,
 })
 
--- Debug: Thông báo đã tạo toggle
-print("Đã tạo toggle Auto TP to AFK")
-
--- Tạo danh sách các map
-local mapOptions = {
-    "Map Leveling City",
-    "Map Grass Village",
-    "Map Brum Island", 
-    "Map Faceheal Town",
-    "Map Lucky Kingdom",
-    "Map Nipon City",
-    "Map Mori Town"
-}
-
--- Khởi tạo giá trị mặc định
-local defaultMap = CONFIG.SELECTED_MAP or "Map Leveling City"
-print("Map mặc định: " .. defaultMap)
-
--- Tạo Dropdown cho lựa chọn map
-local MapDropdown = TeleportTab:CreateDropdown({
+-- Tạo Dropdown cho Map Selection
+local mapSelectionDropdown = TeleportTab:CreateDropdown({
     Name = "Chọn Map",
-    Options = mapOptions,
-    CurrentOption = defaultMap,
-    Flag = "SelectedMap",
-    Callback = function(Option)
-        CONFIG.SELECTED_MAP = Option
-        saveConfig(CONFIG)
-        print("Đã chọn map: " .. Option)
-        
-        Rayfield:Notify({
-            Title = "Đã chọn map",
-            Content = "Map đã chọn: " .. Option,
-            Duration = 2,
-            Image = "check",
-        })
+    Options = {"Leveling City", "Grass Village", "Brum Island", "Faceheal Town", "Lucky Kingdom", "Nipon City", "Mori Town"},
+    CurrentOption = "Leveling City",
+    Flag = "MapSelection",
+    Callback = function(selectedMap)
+        print("Map đã chọn: " .. selectedMap)
     end,
 })
 
--- Debug: Thông báo đã tạo dropdown
-print("Đã tạo dropdown chọn map")
-
--- Tạo button để teleport đến map đã chọn
-local TeleportButton = TeleportTab:CreateButton({
-    Name = "Teleport đến map đã chọn",
+-- Tạo Button để kích hoạt chức năng map đã chọn
+local activateMapButton = TeleportTab:CreateButton({
+    Name = "Kích hoạt Map",
     Callback = function()
-        print("Đã nhấn nút teleport")
-        teleportToSelectedMap()
+        local selectedMap = mapSelectionDropdown:Get()
+        local args
+        if selectedMap == "Leveling City" then
+            args = {
+                [1] = {
+                    [1] = {
+                        ["Event"] = "ChangeSpawn",
+                        ["Spawn"] = "SoloWorld",
+                    },
+                    [2] = "\n",
+                },
+            }
+        elseif selectedMap == "Grass Village" then
+            args = {
+                [1] = {
+                    [1] = {
+                        ["Event"] = "ChangeSpawn",
+                        ["Spawn"] = "NarutoWorld",
+                    },
+                    [2] = "\n",
+                },
+            }
+        elseif selectedMap == "Brum Island" then
+            args = {
+                [1] = {
+                    [1] = {
+                        ["Event"] = "ChangeSpawn",
+                        ["Spawn"] = "OPWorld",
+                    },
+                    [2] = "\n",
+                },
+            }
+        elseif selectedMap == "Faceheal Town" then
+            args = {
+                [1] = {
+                    [1] = {
+                        ["Event"] = "ChangeSpawn",
+                        ["Spawn"] = "BleachWorld",
+                    },
+                    [2] = "\n",
+                },
+            }
+        elseif selectedMap == "Lucky Kingdom" then
+            args = {
+                [1] = {
+                    [1] = {
+                        ["Event"] = "ChangeSpawn",
+                        ["Spawn"] = "BCWorld",
+                    },
+                    [2] = "\n",
+                },
+            }
+        elseif selectedMap == "Nipon City" then
+            args = {
+                [1] = {
+                    [1] = {
+                        ["Event"] = "ChangeSpawn",
+                        ["Spawn"] = "ChainsawWorld",
+                    },
+                    [2] = "\n",
+                },
+            }
+        elseif selectedMap == "Mori Town" then
+            args = {
+                [1] = {
+                    [1] = {
+                        ["Event"] = "ChangeSpawn",
+                        ["Spawn"] = "JojoWorld",
+                    },
+                    [2] = "\n",
+                },
+            }
+        end
+        
+        if args then
+            game:GetService("ReplicatedStorage"):WaitForChild("BridgeNet2", 9e9):WaitForChild("dataRemoteEvent", 9e9):FireServer(unpack(args))
+            print("Đã kích hoạt chức năng cho map: " .. selectedMap)
+        else
+            print("Không tìm thấy map đã chọn")
+        end
     end,
 })
-
--- Debug: Thông báo đã tạo button
-print("Đã tạo button teleport")
-
--- Tạo một danh sách map và đường dẫn (đặt sau khi đã tạo UI)
-local mapList = {
-    ["Map Leveling City"] = function() return workspace.__World and workspace.__World:FindFirstChild("World 1") end,
-    ["Map Grass Village"] = function() return workspace.__World and workspace.__World:FindFirstChild("World 2") end,
-    ["Map Brum Island"] = function() return workspace.__World and workspace.__World:FindFirstChild("World 3") end,
-    ["Map Faceheal Town"] = function() return workspace.__World and workspace.__World:FindFirstChild("World 4") end,
-    ["Map Lucky Kingdom"] = function() return workspace.__World and workspace.__World:FindFirstChild("World 5") end,
-    ["Map Nipon City"] = function() return workspace.__World and workspace.__World:FindFirstChild("World 6") end,
-    ["Map Mori Town"] = function() return workspace.__World and workspace.__World:FindFirstChild("World 7") end
-}
-
--- Hàm teleport đến map đã chọn 
-local function teleportToSelectedMap()
-    local selectedMapName = CONFIG.SELECTED_MAP
-    print("Bắt đầu teleport đến map: " .. selectedMapName)
-    
-    -- Lấy hàm để tìm đường dẫn map
-    local getMapPath = mapList[selectedMapName]
-    
-    if not getMapPath then
-        print("Không tìm thấy map trong danh sách: " .. selectedMapName)
-        Rayfield:Notify({
-            Title = "Lỗi",
-            Content = "Không tìm thấy thông tin map " .. selectedMapName,
-            Duration = 3,
-            Image = "alert-triangle",
-        })
-        return
-    end
-    
-    -- Lấy đường dẫn thực tế của map
-    local selectedMapPath = getMapPath()
-    print("Đường dẫn map: " .. tostring(selectedMapPath))
-    
-    if not selectedMapPath then
-        print("Thử tìm map bằng phương pháp khác...")
-        
-        -- Liệt kê cấu trúc workspace
-        print("Cấu trúc workspace:")
-        for i, child in pairs(workspace:GetChildren()) do
-            print(i, child.Name, child.ClassName)
-            
-            if child.Name == "__World" then
-                print("  Cấu trúc __World:")
-                for j, worldChild in pairs(child:GetChildren()) do
-                    print("  ", j, worldChild.Name, worldChild.ClassName)
-                end
-            end
-        end
-        
-        -- Phương pháp thay thế 1: Tìm theo số map
-        local mapNumber = selectedMapName:match("(%d+)$")
-        if mapNumber and workspace.__World and workspace.__World:FindFirstChild("World " .. mapNumber) then
-            selectedMapPath = workspace.__World["World " .. mapNumber]
-            print("Tìm thấy map theo số: " .. selectedMapPath:GetFullName())
-        else
-            Rayfield:Notify({
-                Title = "Lỗi",
-                Content = "Không tìm thấy map " .. selectedMapName,
-                Duration = 3, 
-                Image = "alert-triangle",
-            })
-            return
-        end
-    end
-    
-    -- Tìm vị trí để teleport
-    local mapPosition
-    
-    -- Liệt kê các phần tử con của map để debug
-    print("Các phần tử con của map:")
-    for i, child in pairs(selectedMapPath:GetChildren()) do
-        print(i, child.Name, child.ClassName)
-    end
-    
-    -- Tìm vị trí từ SpawnLocation
-    for _, child in pairs(selectedMapPath:GetDescendants()) do
-        if child:IsA("SpawnLocation") then
-            mapPosition = child.Position + Vector3.new(0, 5, 0)
-            print("Sử dụng vị trí SpawnLocation: " .. child:GetFullName())
-            break
-        end
-    end
-    
-    -- Tìm vị trí từ BasePart
-    if not mapPosition then
-        for _, child in pairs(selectedMapPath:GetChildren()) do
-            if child:IsA("BasePart") then
-                mapPosition = child.Position + Vector3.new(0, 5, 0)
-                print("Sử dụng vị trí BasePart: " .. child:GetFullName())
-                break
-            end
-        end
-    end
-    
-    -- Sử dụng vị trí của map nếu không tìm thấy gì khác
-    if not mapPosition and selectedMapPath:IsA("BasePart") then
-        mapPosition = selectedMapPath.Position + Vector3.new(0, 5, 0)
-        print("Sử dụng vị trí của map: " .. selectedMapPath:GetFullName())
-    elseif not mapPosition then
-        -- Thử lấy vị trí trung tâm của map
-        local success, result = pcall(function()
-            return selectedMapPath:GetModelCFrame().Position + Vector3.new(0, 5, 0)
-        end)
-        
-        if success then
-            mapPosition = result
-            print("Sử dụng vị trí trung tâm của map")
-        else
-            print("Không thể xác định vị trí teleport")
-            Rayfield:Notify({
-                Title = "Lỗi",
-                Content = "Không thể xác định vị trí teleport cho " .. selectedMapName,
-                Duration = 3,
-                Image = "alert-triangle",
-            })
-            return
-        end
-    end
-    
-    -- Teleport người chơi
-    if mapPosition then
-        local character = Player.Character or Player.CharacterAdded:Wait()
-        local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-        
-        if humanoidRootPart then
-            humanoidRootPart.CFrame = CFrame.new(mapPosition)
-            print("Teleport thành công đến: " .. tostring(mapPosition))
-            
-            Rayfield:Notify({
-                Title = "Teleport thành công",
-                Content = "Đã teleport đến " .. selectedMapName,
-                Duration = 3,
-                Image = "check",
-            })
-        else
-            print("Không tìm thấy HumanoidRootPart")
-            Rayfield:Notify({
-                Title = "Lỗi",
-                Content = "Không thể teleport (không tìm thấy HumanoidRootPart)",
-                Duration = 3,
-                Image = "x",
-            })
-        end
-    end
-end
 
 -- Tạo UI cấu hình Webhook (thay thế hàm cũ bằng các phần tử Rayfield)
 local function createWebhookUI()
