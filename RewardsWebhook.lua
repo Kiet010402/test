@@ -377,6 +377,14 @@ local MapDropdown = TeleportTab:CreateDropdown({
             if mapName == Option then
                 selectedMapIndex = i
                 print("Đã chọn map: " .. Option .. " (Index: " .. i .. ")")
+                
+                -- Thêm thông báo để xác nhận lựa chọn
+                Rayfield:Notify({
+                    Title = "Đã chọn map",
+                    Content = "Map: " .. Option,
+                    Duration = 1.5,
+                    Image = "map"
+                })
                 break
             end
         end
@@ -387,6 +395,10 @@ local MapDropdown = TeleportTab:CreateDropdown({
 local ActivateButton = TeleportTab:CreateButton({
     Name = "Kích hoạt map đã chọn",
     Callback = function()
+        -- Debug: In ra thông tin về map đang chọn
+        print("Current selectedMapIndex: " .. tostring(selectedMapIndex))
+        print("Available maps: " .. #maps)
+        
         -- Lấy thông tin map đã chọn
         local selectedMap = maps[selectedMapIndex]
         
@@ -399,6 +411,9 @@ local ActivateButton = TeleportTab:CreateButton({
             })
             return
         end
+        
+        -- Debug: In ra thông tin map đã chọn
+        print("Preparing to activate map: " .. selectedMap.name .. " (ID: " .. selectedMap.id .. ")")
         
         -- Hiển thị thông báo
         Rayfield:Notify({
@@ -432,7 +447,7 @@ local ActivateButton = TeleportTab:CreateButton({
                 Duration = 3,
                 Image = "check"
             })
-            print("Đã kích hoạt map: " .. selectedMap.name .. " (" .. selectedMap.id .. ")")
+            print("Đã kích hoạt map: " .. selectedMap.name .. " (ID: " .. selectedMap.id .. ")")
         else
             Rayfield:Notify({
                 Title = "Lỗi",
