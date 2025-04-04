@@ -347,6 +347,7 @@ local AutoTeleportToggle = TeleportTab:CreateToggle({
 
 -- Thêm dropdown chọn map
 local selectedMap = "SoloWorld" -- Map mặc định
+local selectedMapName = "Leveling City" -- Tên hiển thị mặc định
 local mapNames = {
     ["Leveling City"] = "SoloWorld",
     ["Grass Village"] = "NarutoWorld",
@@ -363,13 +364,26 @@ local MapDropdown = TeleportTab:CreateDropdown({
     CurrentOption = "Leveling City",
     Flag = "SelectedMap",
     Callback = function(Option)
-        selectedMap = mapNames[Option]
-        Rayfield:Notify({
-            Title = "Đã chọn map",
-            Content = "Map: " .. Option,
-            Duration = 2,
-            Image = "map", -- Lucide icon
-        })
+        -- Kiểm tra xem Option có trong danh sách không
+        if mapNames[Option] then
+            selectedMap = mapNames[Option]
+            selectedMapName = Option
+            
+            Rayfield:Notify({
+                Title = "Đã chọn map",
+                Content = "Map: " .. Option,
+                Duration = 2,
+                Image = "map", -- Lucide icon
+            })
+        else
+            warn("Không tìm thấy map: " .. Option)
+            Rayfield:Notify({
+                Title = "Lỗi",
+                Content = "Không tìm thấy map: " .. Option,
+                Duration = 3,
+                Image = "alert-triangle", -- Lucide icon
+            })
+        end
     end,
 })
 
@@ -391,7 +405,7 @@ local ActivateButton = TeleportTab:CreateButton({
         -- Hiển thị thông báo đang kích hoạt
         Rayfield:Notify({
             Title = "Đang kích hoạt",
-            Content = "Đang kích hoạt map: " .. (table.find(mapNames, selectedMap) or selectedMap),
+            Content = "Đang kích hoạt map: " .. selectedMapName,
             Duration = 3,
             Image = "loader", -- Lucide icon
         })
@@ -404,10 +418,13 @@ local ActivateButton = TeleportTab:CreateButton({
         if success then
             Rayfield:Notify({
                 Title = "Thành công",
-                Content = "Đã kích hoạt map thành công",
+                Content = "Đã kích hoạt map " .. selectedMapName .. " thành công",
                 Duration = 3,
                 Image = "check", -- Lucide icon
             })
+            
+            -- Thêm log để debug
+            print("Đã kích hoạt map: " .. selectedMapName .. " (" .. selectedMap .. ")")
         else
             Rayfield:Notify({
                 Title = "Lỗi",
@@ -415,6 +432,9 @@ local ActivateButton = TeleportTab:CreateButton({
                 Duration = 5,
                 Image = "x", -- Lucide icon
             })
+            
+            -- Thêm log lỗi chi tiết
+            warn("Lỗi kích hoạt map: " .. tostring(err))
         end
     end,
 })
@@ -1330,7 +1350,7 @@ local function sendInitialReceivedWebhook()
         end
         
         -- Kết thúc xử lý
-        wait(0.5)
+        wait(0.5) -- Chờ một chút để tránh xử lý quá nhanh
         isProcessingReward = false
         lastWebhookTime = tick() -- Cập nhật thời gian gửi webhook cuối cùng
     end
