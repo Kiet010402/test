@@ -345,100 +345,76 @@ local AutoTeleportToggle = TeleportTab:CreateToggle({
     end,
 })
 
--- Tạo Dropdown cho Map Selection
-local mapSelectionDropdown = TeleportTab:CreateDropdown({
+-- Thêm dropdown chọn map
+local selectedMap = "SoloWorld" -- Map mặc định
+local mapNames = {
+    ["Leveling City"] = "SoloWorld",
+    ["Grass Village"] = "NarutoWorld",
+    ["Brum Island"] = "OPWorld",
+    ["Faceheal Town"] = "BleachWorld",
+    ["Lucky Kingdom"] = "BCWorld",
+    ["Nipon City"] = "ChainsawWorld",
+    ["Mori Town"] = "JojoWorld"
+}
+
+local MapDropdown = TeleportTab:CreateDropdown({
     Name = "Chọn Map",
     Options = {"Leveling City", "Grass Village", "Brum Island", "Faceheal Town", "Lucky Kingdom", "Nipon City", "Mori Town"},
     CurrentOption = "Leveling City",
-    Flag = "MapSelection",
-    Callback = function(selectedMap)
-        print("Map đã chọn: " .. selectedMap)
+    Flag = "SelectedMap",
+    Callback = function(Option)
+        selectedMap = mapNames[Option]
+        Rayfield:Notify({
+            Title = "Đã chọn map",
+            Content = "Map: " .. Option,
+            Duration = 2,
+            Image = "map", -- Lucide icon
+        })
     end,
 })
 
--- Tạo Button để kích hoạt chức năng map đã chọn
-local activateMapButton = TeleportTab:CreateButton({
-    Name = "Kích hoạt Map",
+-- Thêm nút kích hoạt teleport
+local ActivateButton = TeleportTab:CreateButton({
+    Name = "Kích hoạt map đã chọn",
     Callback = function()
-        local selectedMap = mapSelectionDropdown:Get()
-        local args
-        if selectedMap == "Leveling City" then
-            args = {
+        -- Thực hiện kích hoạt map đã chọn
+        local args = {
+            [1] = {
                 [1] = {
-                    [1] = {
-                        ["Event"] = "ChangeSpawn",
-                        ["Spawn"] = "SoloWorld",
-                    },
-                    [2] = "\n",
+                    ["Event"] = "ChangeSpawn",
+                    ["Spawn"] = selectedMap
                 },
+                [2] = "\n"
             }
-        elseif selectedMap == "Grass Village" then
-            args = {
-                [1] = {
-                    [1] = {
-                        ["Event"] = "ChangeSpawn",
-                        ["Spawn"] = "NarutoWorld",
-                    },
-                    [2] = "\n",
-                },
-            }
-        elseif selectedMap == "Brum Island" then
-            args = {
-                [1] = {
-                    [1] = {
-                        ["Event"] = "ChangeSpawn",
-                        ["Spawn"] = "OPWorld",
-                    },
-                    [2] = "\n",
-                },
-            }
-        elseif selectedMap == "Faceheal Town" then
-            args = {
-                [1] = {
-                    [1] = {
-                        ["Event"] = "ChangeSpawn",
-                        ["Spawn"] = "BleachWorld",
-                    },
-                    [2] = "\n",
-                },
-            }
-        elseif selectedMap == "Lucky Kingdom" then
-            args = {
-                [1] = {
-                    [1] = {
-                        ["Event"] = "ChangeSpawn",
-                        ["Spawn"] = "BCWorld",
-                    },
-                    [2] = "\n",
-                },
-            }
-        elseif selectedMap == "Nipon City" then
-            args = {
-                [1] = {
-                    [1] = {
-                        ["Event"] = "ChangeSpawn",
-                        ["Spawn"] = "ChainsawWorld",
-                    },
-                    [2] = "\n",
-                },
-            }
-        elseif selectedMap == "Mori Town" then
-            args = {
-                [1] = {
-                    [1] = {
-                        ["Event"] = "ChangeSpawn",
-                        ["Spawn"] = "JojoWorld",
-                    },
-                    [2] = "\n",
-                },
-            }
-        end
+        }
         
-        if args then
+        -- Hiển thị thông báo đang kích hoạt
+        Rayfield:Notify({
+            Title = "Đang kích hoạt",
+            Content = "Đang kích hoạt map: " .. (table.find(mapNames, selectedMap) or selectedMap),
+            Duration = 3,
+            Image = "loader", -- Lucide icon
+        })
+        
+        -- Gửi yêu cầu thay đổi spawn
+        local success, err = pcall(function()
             game:GetService("ReplicatedStorage"):WaitForChild("BridgeNet2", 9e9):WaitForChild("dataRemoteEvent", 9e9):FireServer(unpack(args))
-            print("Đã kích hoạt chức năng cho map: " .. selectedMap)
+        end)
+        
+        if success then
+            Rayfield:Notify({
+                Title = "Thành công",
+                Content = "Đã kích hoạt map thành công",
+                Duration = 3,
+                Image = "check", -- Lucide icon
+            })
         else
-            print("Không tìm thấy map đã chọn")
+            Rayfield:Notify({
+                Title = "Lỗi",
+                Content = "Không thể kích hoạt map: " .. tostring(err),
+                Duration = 5,
+                Image = "x", -- Lucide icon
+            })
         end
     end,
 })
