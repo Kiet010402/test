@@ -345,98 +345,104 @@ local AutoTeleportToggle = TeleportTab:CreateToggle({
     end,
 })
 
--- Thêm dropdown chọn map
-local selectedMap = "SoloWorld" -- Map mặc định
-local selectedMapName = "Leveling City" -- Tên hiển thị mặc định
-local mapNames = {
-    ["Leveling City"] = "SoloWorld",
-    ["Grass Village"] = "NarutoWorld",
-    ["Brum Island"] = "OPWorld",
-    ["Faceheal Town"] = "BleachWorld",
-    ["Lucky Kingdom"] = "BCWorld",
-    ["Nipon City"] = "ChainsawWorld",
-    ["Mori Town"] = "JojoWorld"
+-- Định nghĩa các map
+local maps = {
+    {name = "Leveling City", id = "SoloWorld"},
+    {name = "Grass Village", id = "NarutoWorld"},
+    {name = "Brum Island", id = "OPWorld"},
+    {name = "Faceheal Town", id = "BleachWorld"},
+    {name = "Lucky Kingdom", id = "BCWorld"},
+    {name = "Nipon City", id = "ChainsawWorld"},
+    {name = "Mori Town", id = "JojoWorld"}
 }
 
+-- Tạo danh sách tên map cho dropdown
+local mapOptions = {}
+for _, map in ipairs(maps) do
+    table.insert(mapOptions, map.name)
+end
+
+-- Biến lưu map đã chọn
+local selectedMapIndex = 1 -- Mặc định là map đầu tiên
+
+-- Tạo dropdown chọn map
 local MapDropdown = TeleportTab:CreateDropdown({
     Name = "Chọn Map",
-    Options = {"Leveling City", "Grass Village", "Brum Island", "Faceheal Town", "Lucky Kingdom", "Nipon City", "Mori Town"},
-    CurrentOption = "Leveling City",
+    Options = mapOptions,
+    CurrentOption = mapOptions[1],
     Flag = "SelectedMap",
     Callback = function(Option)
-        -- Kiểm tra xem Option có trong danh sách không
-        if mapNames[Option] then
-            selectedMap = mapNames[Option]
-            selectedMapName = Option
-            
-            Rayfield:Notify({
-                Title = "Đã chọn map",
-                Content = "Map: " .. Option,
-                Duration = 2,
-                Image = "map", -- Lucide icon
-            })
-        else
-            warn("Không tìm thấy map: " .. Option)
-            Rayfield:Notify({
-                Title = "Lỗi",
-                Content = "Không tìm thấy map: " .. Option,
-                Duration = 3,
-                Image = "alert-triangle", -- Lucide icon
-            })
+        -- Tìm index của map được chọn
+        for i, mapName in ipairs(mapOptions) do
+            if mapName == Option then
+                selectedMapIndex = i
+                print("Đã chọn map: " .. Option .. " (Index: " .. i .. ")")
+                break
+            end
         end
     end,
 })
 
--- Thêm nút kích hoạt teleport
+-- Tạo nút kích hoạt map
 local ActivateButton = TeleportTab:CreateButton({
     Name = "Kích hoạt map đã chọn",
     Callback = function()
-        -- Thực hiện kích hoạt map đã chọn
+        -- Lấy thông tin map đã chọn
+        local selectedMap = maps[selectedMapIndex]
+        
+        if not selectedMap then
+            Rayfield:Notify({
+                Title = "Lỗi",
+                Content = "Không thể xác định map đã chọn",
+                Duration = 3,
+                Image = "alert-triangle"
+            })
+            return
+        end
+        
+        -- Hiển thị thông báo
+        Rayfield:Notify({
+            Title = "Đang kích hoạt",
+            Content = "Đang kích hoạt map: " .. selectedMap.name,
+            Duration = 2,
+            Image = "loader"
+        })
+        
+        -- Tạo tham số cho lệnh
         local args = {
             [1] = {
                 [1] = {
                     ["Event"] = "ChangeSpawn",
-                    ["Spawn"] = selectedMap
+                    ["Spawn"] = selectedMap.id
                 },
                 [2] = "\n"
             }
         }
         
-        -- Hiển thị thông báo đang kích hoạt
-        Rayfield:Notify({
-            Title = "Đang kích hoạt",
-            Content = "Đang kích hoạt map: " .. selectedMapName,
-            Duration = 3,
-            Image = "loader", -- Lucide icon
-        })
-        
-        -- Gửi yêu cầu thay đổi spawn
+        -- Thực hiện lệnh kích hoạt map
         local success, err = pcall(function()
             game:GetService("ReplicatedStorage"):WaitForChild("BridgeNet2", 9e9):WaitForChild("dataRemoteEvent", 9e9):FireServer(unpack(args))
         end)
         
+        -- Hiển thị kết quả
         if success then
             Rayfield:Notify({
                 Title = "Thành công",
-                Content = "Đã kích hoạt map " .. selectedMapName .. " thành công",
+                Content = "Đã kích hoạt map " .. selectedMap.name,
                 Duration = 3,
-                Image = "check", -- Lucide icon
+                Image = "check"
             })
-            
-            -- Thêm log để debug
-            print("Đã kích hoạt map: " .. selectedMapName .. " (" .. selectedMap .. ")")
+            print("Đã kích hoạt map: " .. selectedMap.name .. " (" .. selectedMap.id .. ")")
         else
             Rayfield:Notify({
                 Title = "Lỗi",
                 Content = "Không thể kích hoạt map: " .. tostring(err),
                 Duration = 5,
-                Image = "x", -- Lucide icon
+                Image = "x"
             })
-            
-            -- Thêm log lỗi chi tiết
             warn("Lỗi kích hoạt map: " .. tostring(err))
         end
-    end,
+    end
 })
 
 -- Tạo UI cấu hình Webhook (thay thế hàm cũ bằng các phần tử Rayfield)
