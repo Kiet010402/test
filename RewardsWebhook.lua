@@ -135,7 +135,7 @@ local sendTestWebhook
 local Window = Rayfield:CreateWindow({
     Name = "Arise Webhook - " .. playerName,
     LoadingTitle = "Arise Crossover",
-    LoadingSubtitle = "by Kiz",
+    LoadingSubtitle = "by DuongTuan",
     ConfigurationSaving = {
         Enabled = true,
         FolderName = "AriseWebhook",
@@ -343,121 +343,6 @@ local AutoTeleportToggle = TeleportTab:CreateToggle({
         CONFIG.AUTO_TELEPORT = Value
         saveConfig(CONFIG)
     end,
-})
-
--- Định nghĩa các map
-local maps = {
-    {name = "Leveling City", id = "SoloWorld"},
-    {name = "Grass Village", id = "NarutoWorld"},
-    {name = "Brum Island", id = "OPWorld"},
-    {name = "Faceheal Town", id = "BleachWorld"},
-    {name = "Lucky Kingdom", id = "BCWorld"},
-    {name = "Nipon City", id = "ChainsawWorld"},
-    {name = "Mori Town", id = "JojoWorld"}
-}
-
--- Tạo danh sách tên map cho dropdown
-local mapOptions = {}
-for _, map in ipairs(maps) do
-    table.insert(mapOptions, map.name)
-end
-
--- Biến lưu map đã chọn
-local selectedMapIndex = 1 -- Mặc định là map đầu tiên
-
--- Tạo dropdown chọn map
-local MapDropdown = TeleportTab:CreateDropdown({
-    Name = "Chọn Map",
-    Options = mapOptions,
-    CurrentOption = mapOptions[1],
-    Flag = "SelectedMap",
-    Callback = function(Option)
-        -- Tìm index của map được chọn
-        for i, mapName in ipairs(mapOptions) do
-            if mapName == Option then
-                selectedMapIndex = i
-                print("Đã chọn map: " .. Option .. " (Index: " .. i .. ")")
-                
-                -- Thêm thông báo để xác nhận lựa chọn
-                Rayfield:Notify({
-                    Title = "Đã chọn map",
-                    Content = "Map: " .. Option,
-                    Duration = 1.5,
-                    Image = "map"
-                })
-                break
-            end
-        end
-    end,
-})
-
--- Tạo nút kích hoạt map
-local ActivateButton = TeleportTab:CreateButton({
-    Name = "Kích hoạt map đã chọn",
-    Callback = function()
-        -- Debug: In ra thông tin về map đang chọn
-        print("Current selectedMapIndex: " .. tostring(selectedMapIndex))
-        print("Available maps: " .. #maps)
-        
-        -- Lấy thông tin map đã chọn
-        local selectedMap = maps[selectedMapIndex]
-        
-        if not selectedMap then
-            Rayfield:Notify({
-                Title = "Lỗi",
-                Content = "Không thể xác định map đã chọn",
-                Duration = 3,
-                Image = "alert-triangle"
-            })
-            return
-        end
-        
-        -- Debug: In ra thông tin map đã chọn
-        print("Preparing to activate map: " .. selectedMap.name .. " (ID: " .. selectedMap.id .. ")")
-        
-        -- Hiển thị thông báo
-        Rayfield:Notify({
-            Title = "Đang kích hoạt",
-            Content = "Đang kích hoạt map: " .. selectedMap.name,
-            Duration = 2,
-            Image = "loader"
-        })
-        
-        -- Tạo tham số cho lệnh
-        local args = {
-            [1] = {
-                [1] = {
-                    ["Event"] = "ChangeSpawn",
-                    ["Spawn"] = selectedMap.id
-                },
-                [2] = "\n"
-            }
-        }
-        
-        -- Thực hiện lệnh kích hoạt map
-        local success, err = pcall(function()
-            game:GetService("ReplicatedStorage"):WaitForChild("BridgeNet2", 9e9):WaitForChild("dataRemoteEvent", 9e9):FireServer(unpack(args))
-        end)
-        
-        -- Hiển thị kết quả
-        if success then
-            Rayfield:Notify({
-                Title = "Thành công",
-                Content = "Đã kích hoạt map " .. selectedMap.name,
-                Duration = 3,
-                Image = "check"
-            })
-            print("Đã kích hoạt map: " .. selectedMap.name .. " (ID: " .. selectedMap.id .. ")")
-        else
-            Rayfield:Notify({
-                Title = "Lỗi",
-                Content = "Không thể kích hoạt map: " .. tostring(err),
-                Duration = 5,
-                Image = "x"
-            })
-            warn("Lỗi kích hoạt map: " .. tostring(err))
-        end
-    end
 })
 
 -- Tạo UI cấu hình Webhook (thay thế hàm cũ bằng các phần tử Rayfield)
@@ -1371,7 +1256,7 @@ local function sendInitialReceivedWebhook()
         end
         
         -- Kết thúc xử lý
-        wait(0.5) -- Chờ một chút để tránh xử lý quá nhanh
+        wait(0.5)
         isProcessingReward = false
         lastWebhookTime = tick() -- Cập nhật thời gian gửi webhook cuối cùng
     end
